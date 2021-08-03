@@ -65,7 +65,7 @@ export const removeSharedAccount = functions.region('europe-west1').https.onCall
                     delete house.balances[data.sharedAccountId];
                     fireTrans.update(houseRef, {
                         sharedAccounts: admin.firestore.FieldValue.arrayRemove(sharedAccount),
-                        [`balances.${data.sharedAccountId}`]: admin.firestore.FieldValue.delete()
+                        [`balances.${data.sharedAccountId}`]: admin.firestore.FieldValue.delete(),
                     });
                 } else {
                     console.error('Shared account not found');

@@ -1,5 +1,5 @@
 // The Cloud Functions for Firebase SDK to create Cloud Functions and setup triggers.
-// @ts-ignore
+// eslint-disable-next-line import/no-unassigned-import
 require('firebase-functions');
 
 // The Firebase Admin SDK to access Firestore.

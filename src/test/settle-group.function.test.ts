@@ -1,5 +1,4 @@
 // const test = require('firebase-functions-test')();
-
 import {House, Settlement} from '../models';
 import {AccountBalanceMap, calculateNewBalance, calculateSettlement, deriveUpdateBatch} from '../helpers/settlement.helper';
 

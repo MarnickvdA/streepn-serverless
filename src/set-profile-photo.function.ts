@@ -38,7 +38,7 @@ export const setProfilePhoto = functions.region('europe-west1').https.onCall((da
     }
 
     admin.auth().updateUser(userId, {
-        photoURL: data.downloadUrl
+        photoURL: data.downloadUrl,
     }).catch(err => {
         console.error(err);
     });

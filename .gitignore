@@ -105,7 +105,7 @@ modules.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/firebase,webstorm+all
 
-lib
-data
+functions/lib
+functions/data
 
 **.log

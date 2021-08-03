@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+    match /databases/{database}/documents {
+
+        allow read, write: if false;
+
+        match /houseInvites/{inviteLink} {
+            allow get, create, delete: if isSignedIn();
+        }
+
+        match /houses/{houseId} {
+              allow read, update: if isSignedIn() && isMemberOfHouse(existingData());
+              allow create: if isSignedIn();
+              allow delete: if isSignedIn() && isAdminOfHouse(existingData()) && canDeleteHouse(existingData());
+
+              match /stock/{stockId} {
+                  allow read, create, update: if isSignedIn() && isMemberOfHouse(getHouse(houseId));
+                  allow delete: if false;
+              }
+
+              match /transactions/{transactionId} {
+                  allow read, create, update: if isSignedIn() && isMemberOfHouse(getHouse(houseId));
+                  allow delete: if false;
+              }
+
+              match /settlements/{settlementId} {
+                  allow read: if isSignedIn() && isMemberOfHouse(getHouse(houseId));
+                  allow write: if false;
+              }
+
+              function getHouse(houseId) {
+                  return get(/databases/$(database)/documents/houses/$(houseId)).data;
+              }
+
+              function isMemberOfHouse(house) {
+                  return request.auth.uid in house.members;
+              }
+
+              function isAdminOfHouse(house) {
+                  return request.auth.uid in house.admins;
+              }
+
+              function canDeleteHouse(house) {
+                  return house.totalIn == 0 && house.totalOut == 0;
+              }
+        }
+
+        /// Functions ///
+        function isSignedIn() {
+            return request.auth != null;
+        }
+
+        function existingData() {
+            return resource.data;
+        }
+
+        // function incomingData() {
+        // 	return request.resource.data;
+        // }
+    }
+}

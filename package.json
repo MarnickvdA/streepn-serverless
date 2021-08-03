@@ -1,0 +1,44 @@
+{
+  "name": "streepn-functions",
+  "description": "Dé digitale streeplijst",
+  "version": "0.0.1",
+  "author": "Strype B.V.",
+  "homepage": "https://streepn.nl",
+  "main": "lib/index.js",
+  "private": true,
+  "scripts": {
+    "lint": "eslint \"src/**/*\"",
+    "build": "tsc",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "deploy-rules": "firebase deploy --only firestore:rules",
+    "logs": "firebase functions:log",
+    "test": "ts-mocha 'test/**/*.ts'",
+    "emulate": "firebase emulators:start --import ./data --export-on-exit=./data"
+  },
+  "engines": {
+    "node": "12"
+  },
+  "dependencies": {
+    "firebase-admin": "^9.2.0",
+    "firebase-functions": "^3.11.0",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.15",
+    "@typescript-eslint/eslint-plugin": "^3.9.1",
+    "@typescript-eslint/parser": "^3.8.0",
+    "chai": "^4.3.0",
+    "eslint": "^7.6.0",
+    "eslint-plugin-import": "^2.22.0",
+    "firebase-functions-test": "^0.2.3",
+    "jest": "^26.6.3",
+    "mocha": "^8.2.1",
+    "mocha-junit-reporter": "^2.0.0",
+    "sinon": "^9.2.4",
+    "ts-mocha": "^8.0.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^3.8.0"
+  }
+}

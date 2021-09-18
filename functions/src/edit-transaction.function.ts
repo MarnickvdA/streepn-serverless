@@ -1,4 +1,4 @@
-import {House, Transaction, UserAccount} from './models';
+import {House, SharedAccount, Transaction, UserAccount} from './models';
 import * as functions from 'firebase-functions';
 import {ErrorMessage} from './models/error-message';
 import {getTransactionUpdateObject} from './helpers/transaction.helper';
@@ -74,9 +74,19 @@ export const editTransaction = functions.region('europe-west1').https
                             }
 
                             const deltaTransaction: Transaction = JSON.parse(JSON.stringify(data.updatedTransaction)) as Transaction;
+                            let sharedAccountWasAlreadySettled = false;
                             deltaTransaction.items.forEach((item, index) => {
+                                const sharedAccount: SharedAccount | undefined = house.sharedAccounts.find(i => i.id === item.accountId);
+                                if (sharedAccount && sharedAccount.settledAt > trans.createdAt) {
+                                    sharedAccountWasAlreadySettled = true;
+                                }
+
                                 item.amount -= trans.items[index].amount;
                             });
+
+                            if (sharedAccountWasAlreadySettled) {
+                                throw new functions.https.HttpsError('failed-precondition', ErrorMessage.SHARED_ACCOUNT_ALREADY_SETTLED)
+                            }
 
                             data.updatedTransaction.items = data.updatedTransaction.items.filter((item) => {
                                 return item.amount > 0;

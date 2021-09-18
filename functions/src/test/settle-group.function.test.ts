@@ -1,6 +1,6 @@
 // const test = require('firebase-functions-test')();
-import {House, Settlement} from '../models';
-import {AccountBalanceMap, calculateNewBalance, calculateSettlement, deriveUpdateBatch} from '../helpers/settlement.helper';
+import {House, HouseSettlement} from '../models';
+import {AccountBalanceMap, calculateNewBalance, calculateHouseSettlement, deriveUpdateBatch} from '../helpers/settlement.helper';
 
 const assert = require('assert');
 
@@ -109,7 +109,7 @@ describe('settle-house.function', () => {
     describe('settleHouse()', () => {
         const newBalances: AccountBalanceMap = calculateNewBalance(house);
         const updateBatch: any = deriveUpdateBatch(house, newBalances); // Included because it includes side effects for newBalances
-        const settlement: Settlement = calculateSettlement(house, 'user1', newBalances);
+        const settlement: HouseSettlement = calculateHouseSettlement(house, 'user1', newBalances);
 
         it('should have a settle sum of 0', () => {
             let settleSum = 0;

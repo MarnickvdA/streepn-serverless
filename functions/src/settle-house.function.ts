@@ -1,8 +1,8 @@
 import * as functions from 'firebase-functions';
 import {ErrorMessage} from './models/error-message';
 import * as admin from 'firebase-admin';
-import {House, Settlement} from './models';
-import {AccountBalanceMap, calculateNewBalance, calculateSettlement, deriveUpdateBatch} from './helpers/settlement.helper';
+import {House, HouseSettlement} from './models';
+import {AccountBalanceMap, calculateNewBalance, calculateHouseSettlement, deriveUpdateBatch} from './helpers/settlement.helper';
 
 const {v4: uuidv4} = require('uuid');
 const db = admin.firestore();
@@ -68,7 +68,7 @@ export const settleHouse = functions.region('europe-west1').https
                     const newAccountBalances: AccountBalanceMap = calculateNewBalance(house);
 
                     const updateBatch: any = deriveUpdateBatch(house, newAccountBalances);
-                    const settlement: Settlement = calculateSettlement(house, userId, newAccountBalances);
+                    const settlement: HouseSettlement = calculateHouseSettlement(house, userId, newAccountBalances);
 
                     fireTrans.update(houseRef, updateBatch);
                     fireTrans.create(houseRef.collection('settlements').doc(uuidv4()), settlement);

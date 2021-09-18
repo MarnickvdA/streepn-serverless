@@ -1,4 +1,12 @@
-import {Balance, House, Product, ProductData, SettleMap, Settlement, UserAccount} from '../models';
+import {
+    Balance,
+    House,
+    Product,
+    ProductData,
+    HouseSettleMap,
+    UserAccount,
+    HouseSettlement,
+} from '../models';
 import * as functions from 'firebase-functions';
 import {ErrorMessage} from '../models/error-message';
 import * as admin from 'firebase-admin';
@@ -225,13 +233,13 @@ export function deriveUpdateBatch(house: House, newAccountBalances: AccountBalan
     return updateBatch;
 }
 
-export function calculateSettlement(house: House, userId: string, newAccountBalances: AccountBalanceMap): Settlement {
+export function calculateHouseSettlement(house: House, userId: string, newAccountBalances: AccountBalanceMap): HouseSettlement {
     let toSettle: {
         accountId: string,
         settle: number,
     }[] = [];
 
-    const settled: SettleMap = {};
+    const settled: HouseSettleMap = {};
 
     Object.keys(newAccountBalances).forEach((accountId: string) => {
         const settleAmount = newAccountBalances[accountId].oldBalance
@@ -282,11 +290,12 @@ export function calculateSettlement(house: House, userId: string, newAccountBala
         throw new functions.https.HttpsError('not-found', ErrorMessage.USER_ACCOUNT_NOT_FOUND);
     }
 
-    const settlement: Settlement = {
+    const settlement: HouseSettlement = {
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         createdBy: currentAccount.id,
         items: settled,
         accounts: {},
+        type: 'house',
     };
 
     house.accounts.forEach((acc: UserAccount) => {

@@ -11,7 +11,7 @@
     "build": "tsc",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "firebase deploy --only src",
+    "deploy": "firebase deploy --only functions",
     "deploy-rules": "firebase deploy --only firestore:rules",
     "logs": "firebase functions:log",
     "emulate": "firebase emulators:start --import ./data --export-on-exit=./data"

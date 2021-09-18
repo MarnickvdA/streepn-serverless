@@ -21,4 +21,5 @@ export enum ErrorMessage {
 
     // TRANSACTIONS
     TRANSACTION_NOT_FOUND = 'errors.functions.transaction_not_found',
+    SHARED_ACCOUNT_ALREADY_SETTLED = 'errors.functions.shared_account_already_settled',
 }

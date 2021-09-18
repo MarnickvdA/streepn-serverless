@@ -1,21 +1,15 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import {ErrorMessage} from './models/error-message';
-import {House, SharedAccount} from './models';
+import {Account, AccountSettleMap, AccountSettlement, Balance, House, SharedAccount, UserAccount} from './models';
+import {firestore} from "firebase-admin/lib/firestore";
+import Timestamp = firestore.Timestamp;
+
 const db = admin.firestore();
+const {v4: uuidv4} = require('uuid');
 
 interface AccountsPayout {
-    [accountId: string]: Payout;
-}
-
-interface Payout {
-    totalOut: number;
-    products: {
-        [productId: string]: {
-            totalOut: number,
-            amountOut: number,
-        };
-    };
+    [accountId: string]: AccountSettleMap;
 }
 
 interface SettleSharedAccountData {
@@ -70,10 +64,23 @@ export const settleSharedAccount = functions.region('europe-west1').https
                         throw new functions.https.HttpsError('permission-denied', ErrorMessage.NOT_MEMBER_OF_HOUSE);
                     }
 
+                    const currentAccount: UserAccount | undefined
+                        = house.accounts.find((account: any) => account.userId === context.auth?.uid);
+                    const sharedAccount: SharedAccount | undefined
+                        = house.sharedAccounts.find((acc: SharedAccount) => acc.id === data.sharedAccountId);
+
+                    // Check if the user account exists
+                    if (!currentAccount) {
+                        throw new functions.https.HttpsError('not-found', ErrorMessage.USER_ACCOUNT_NOT_FOUND);
+                    }
+
                     // Check if the shared account is part of this house
-                    if (!house.sharedAccounts.find((acc: SharedAccount) => acc.id === data.sharedAccountId)) {
+                    if (!sharedAccount) {
                         throw new functions.https.HttpsError('not-found', ErrorMessage.SHARED_ACCOUNT_NOT_FOUND);
                     }
+
+                    const oldAccountSettledAt: Timestamp = sharedAccount.settledAt;
+                    const oldAccountBalance: Balance = JSON.parse(JSON.stringify(house.balances[data.sharedAccountId]));
 
                     // Create an update object
                     const updateObject: {
@@ -92,7 +99,7 @@ export const settleSharedAccount = functions.region('europe-west1').https
                     };
 
                     Object.keys(data.settlement).forEach((accountId: string) => {
-                        const payer: Payout = data.settlement[accountId];
+                        const payer: AccountSettleMap = data.settlement[accountId];
 
                         updateObject[`balances.${accountId}.totalOut`] = admin.firestore.FieldValue.increment(payer.totalOut);
 
@@ -104,6 +111,29 @@ export const settleSharedAccount = functions.region('europe-west1').https
                                     = admin.firestore.FieldValue.increment(payer.products[productId].amountOut);
                             });
                     });
+
+                    const accountSettlement: AccountSettlement = {
+                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                        createdBy: currentAccount.id,
+                        type: 'sharedAccount',
+                        creditorId: data.sharedAccountId,
+                        creditor: oldAccountBalance,
+                        debtors: data.settlement,
+                        settledAtBefore: oldAccountSettledAt ? Timestamp.fromMillis(oldAccountSettledAt?.toMillis()) : Timestamp.now(),
+                        accounts: {},
+                    };
+
+                    accountSettlement.accounts[data.sharedAccountId] = {
+                        name: sharedAccount.name,
+                    }
+
+                    house.accounts.forEach((acc: Account) => {
+                        accountSettlement.accounts[acc.id] = {
+                            name: acc.name,
+                        };
+                    });
+
+                    fireTrans.create(houseRef.collection('settlements').doc(uuidv4()), accountSettlement);
 
                     // Update the house
                     fireTrans.update(houseRef, updateObject);

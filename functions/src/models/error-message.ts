@@ -11,6 +11,7 @@ export enum ErrorMessage {
     SHARED_ACCOUNT_NOT_FOUND = 'errors.functions.shared_account_not_found',
     PRODUCT_NOT_FOUND = 'errors.functions.product_not_found',
     NOT_MEMBER_OF_HOUSE = 'errors.functions.house_not_member',
+    ALREADY_MEMBER_OF_HOUSE = 'errors.functions.house_already_member',
     NOT_ADMIN_OF_HOUSE= 'errors.functions.house_not_admin',
     HOUSE_LEAVE_DENIED = 'errors.functions.house_leave_denied',
     INVALID_HOUSE_CODE = 'errors.functions.house_code_invalid',

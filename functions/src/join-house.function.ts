@@ -61,6 +61,10 @@ export const joinHouse = functions.region('europe-west1').https.onCall((data: Jo
                     throw new functions.https.HttpsError('permission-denied', ErrorMessage.INVALID_HOUSE_CODE);
                 }
 
+                if (house.members.includes(user.uid)) {
+                    throw new functions.https.HttpsError('permission-denied', ErrorMessage.ALREADY_MEMBER_OF_HOUSE);
+                }
+
                 const now = admin.firestore.Timestamp.now();
                 if (house.inviteLinkExpiry < now) {
                     throw new functions.https.HttpsError('permission-denied', ErrorMessage.EXPIRED_HOUSE_CODE);

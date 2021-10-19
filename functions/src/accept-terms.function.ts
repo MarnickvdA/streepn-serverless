@@ -10,8 +10,6 @@ export const acceptTerms = functions
             throw new functions.https.HttpsError('unauthenticated', 'Not authenticated');
         }
 
-        console.log('setting user claims: ' + userId);
-
         return admin.auth().setCustomUserClaims(userId, {
                 acceptedTermsAndPrivacy: true,
                 termsAndPrivacyVersion: data.version,

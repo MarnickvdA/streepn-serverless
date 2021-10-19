@@ -44,11 +44,18 @@ export interface HouseSettlement extends Settlement {
     items: HouseSettleMap;
 }
 
-export interface AccountSettlement extends Settlement {
-    settledAtBefore: Timestamp,
+export interface SharedAccountSettlement extends Settlement {
+    settledAtBefore: Timestamp;
     creditor: Balance;
     creditorId: string;
     debtors: {
         [id: string]: AccountSettleMap
     }
+}
+
+export interface UserAccountSettlement extends Settlement {
+    settledAtBefore: Timestamp;
+    settlerAccountId: string;
+    receiverAccountId: string;
+    balanceSettled: Balance;
 }

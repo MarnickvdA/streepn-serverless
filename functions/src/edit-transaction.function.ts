@@ -74,18 +74,24 @@ export const editTransaction = functions.region('europe-west1').https
                             }
 
                             const deltaTransaction: Transaction = JSON.parse(JSON.stringify(data.updatedTransaction)) as Transaction;
-                            let sharedAccountWasAlreadySettled = false;
+
+                            // Check if any account was already settled
+                            let accountWasAlreadySettled = false;
                             deltaTransaction.items.forEach((item, index) => {
-                                const sharedAccount: SharedAccount | undefined = house.sharedAccounts.find(i => i.id === item.accountId);
-                                if (sharedAccount && sharedAccount.settledAt > trans.createdAt) {
-                                    sharedAccountWasAlreadySettled = true;
+                                let account: UserAccount | SharedAccount | undefined = house.accounts.find(i => i.id === item.accountId);
+                                if (!account) {
+                                    account = house.sharedAccounts.find(i => i.id === item.accountId);
+                                }
+
+                                if (account && account.settledAt > trans.createdAt) {
+                                    accountWasAlreadySettled = true;
                                 }
 
                                 item.amount -= trans.items[index].amount;
                             });
 
-                            if (sharedAccountWasAlreadySettled) {
-                                throw new functions.https.HttpsError('failed-precondition', ErrorMessage.SHARED_ACCOUNT_ALREADY_SETTLED)
+                            if (accountWasAlreadySettled) {
+                                throw new functions.https.HttpsError('failed-precondition', ErrorMessage.ACCOUNT_ALREADY_SETTLED)
                             }
 
                             data.updatedTransaction.items = data.updatedTransaction.items.filter((item) => {

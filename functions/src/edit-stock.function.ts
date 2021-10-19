@@ -1,4 +1,4 @@
-import {House, Stock} from './models';
+import {House, Stock, UserAccount} from './models';
 import * as functions from 'firebase-functions';
 import {ErrorMessage} from './models/error-message';
 import {getDeltaStock, getHouseUpdateDataIn} from './helpers/stock.helper';
@@ -66,6 +66,12 @@ export const editStock = functions.region('europe-west1').https.onCall((data: Ed
                         }
 
                         const deltaStock: Stock = getDeltaStock(original, data.updatedStock);
+
+                        // Check if the account that paid for the stock was already settled
+                        const account: UserAccount | undefined = house.accounts.find(acc => acc.id === original.paidById);
+                        if (account && account.settledAt > original.createdAt) {
+                            throw new functions.https.HttpsError('failed-precondition', ErrorMessage.ACCOUNT_ALREADY_SETTLED);
+                        }
 
                         // Update old stock and update stock in firestore
                         if (data.updatedStock.amount === 0) {

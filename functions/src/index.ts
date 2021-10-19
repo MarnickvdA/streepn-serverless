@@ -27,5 +27,6 @@ export {editTransaction} from './edit-transaction.function';
 
 export {settleHouse} from './settle-house.function';
 export {settleSharedAccount} from './settle-shared-account.function';
+export {settleUserAccount} from './settle-user-account.function';
 
 // Messaging functions

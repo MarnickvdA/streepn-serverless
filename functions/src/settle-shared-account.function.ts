@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import {ErrorMessage} from './models/error-message';
-import {Account, AccountSettleMap, AccountSettlement, Balance, House, SharedAccount, UserAccount} from './models';
+import {Account, AccountSettleMap, SharedAccountSettlement, Balance, House, SharedAccount, UserAccount} from './models';
 import {firestore} from "firebase-admin/lib/firestore";
 import Timestamp = firestore.Timestamp;
 
@@ -79,7 +79,7 @@ export const settleSharedAccount = functions.region('europe-west1').https
                         throw new functions.https.HttpsError('not-found', ErrorMessage.SHARED_ACCOUNT_NOT_FOUND);
                     }
 
-                    const oldAccountSettledAt: Timestamp = sharedAccount.settledAt;
+                    const oldAccountSettledAt: Timestamp | undefined = sharedAccount.settledAt ? JSON.parse(JSON.stringify(sharedAccount.settledAt)) as Timestamp : undefined;
                     const oldAccountBalance: Balance = JSON.parse(JSON.stringify(house.balances[data.sharedAccountId]));
 
                     // Create an update object
@@ -112,14 +112,15 @@ export const settleSharedAccount = functions.region('europe-west1').https
                             });
                     });
 
-                    const accountSettlement: AccountSettlement = {
+
+                    const accountSettlement: SharedAccountSettlement = {
                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
                         createdBy: currentAccount.id,
                         type: 'sharedAccount',
                         creditorId: data.sharedAccountId,
                         creditor: oldAccountBalance,
                         debtors: data.settlement,
-                        settledAtBefore: oldAccountSettledAt ? Timestamp.fromMillis(oldAccountSettledAt?.toMillis()) : Timestamp.now(),
+                        settledAtBefore: oldAccountSettledAt ? oldAccountSettledAt : Timestamp.now(),
                         accounts: {},
                     };
 

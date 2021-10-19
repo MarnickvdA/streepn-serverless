@@ -1,7 +1,8 @@
 import * as functions from 'firebase-functions';
 import {ErrorMessage} from './models/error-message';
-import {Balance, House, UserAccount} from './models';
+import {House, UserAccount} from './models';
 import * as admin from 'firebase-admin';
+import {checkIfAccountCanLeaveHouse, checkIfHouseExists, getUserAccountByUserId, checkIfUserIsMemberOfHouse} from "./helpers/house.helper";
 
 const db = admin.firestore();
 
@@ -44,30 +45,15 @@ export const leaveHouse = functions.region('europe-west1').https.onCall((data: L
             .then(houseDoc => {
                 const house: House = houseDoc.data() as House;
 
-                // Check if the house exists
-                if (!houseDoc.exists || !house) {
-                    throw new functions.https.HttpsError('not-found', ErrorMessage.HOUSE_NOT_FOUND);
-                }
+                checkIfHouseExists(houseDoc, house);
 
-                // Check if the user is part of this house
-                if (!house.members.includes(userId)) {
-                    throw new functions.https.HttpsError('permission-denied', ErrorMessage.NOT_MEMBER_OF_HOUSE);
-                }
+                checkIfUserIsMemberOfHouse(house, userId);
 
-                const account: UserAccount | undefined = house.accounts.find((acc: UserAccount) => acc.userId === context.auth?.uid);
+                const account: UserAccount = getUserAccountByUserId(house, userId);
 
                 if (house.members.length > 1) {
-                    if (!account) {
-                        throw new functions.https.HttpsError('not-found', ErrorMessage.USER_ACCOUNT_NOT_FOUND);
-                    }
-
-                    const accountBalance: Balance | undefined = house.balances[account.id];
-
                     // Check if the current user is allowed to leave
-                    // TODO Check if this check is complete. Maybe ignoring the products without a price.
-                    if (!accountBalance || accountBalance?.totalIn !== 0 || accountBalance?.totalOut !== 0) {
-                        throw new functions.https.HttpsError('permission-denied', ErrorMessage.HOUSE_LEAVE_DENIED);
-                    }
+                    checkIfAccountCanLeaveHouse(house, account);
 
                     // Remove the balance of this account from the map of balances
                     delete house.balances[account.id];

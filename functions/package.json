@@ -1,7 +1,7 @@
 {
-  "name": "streepn-functions",
+  "name": "streepn-serverless",
   "description": "Dé digitale streeplijst",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Strype B.V.",
   "homepage": "https://streepn.nl",
   "main": "lib/index.js",

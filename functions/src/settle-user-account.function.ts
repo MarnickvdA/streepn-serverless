@@ -1,11 +1,9 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
 import {ErrorMessage} from './models/error-message';
 import {Account, Balance, House, UserAccount, UserAccountSettlement} from './models';
-import {firestore} from "firebase-admin/lib/firestore";
-import Timestamp = firestore.Timestamp;
 
-const db = admin.firestore();
+const {FieldValue, getFirestore, Timestamp} = require("firebase-admin/firestore");
+const db = getFirestore();
 const {v4: uuidv4} = require('uuid');
 
 interface SettleUserAccountData {
@@ -32,7 +30,10 @@ interface SettleUserAccountData {
  * @throws NOT_MEMBER_OF_HOUSE if the user is not member of this house
  * @throws USER_ACCOUNT_NOT_FOUND if the account of the user was not found in this house
  */
-export const settleUserAccount = functions.region('europe-west1').https
+export const settleUserAccount = functions
+    .runWith({memory: "512MB"})
+    .region('europe-west1')
+    .https
     .onCall((data: SettleUserAccountData, context) => {
         const userId: string | undefined = context.auth?.uid;
         if (!userId) {
@@ -77,7 +78,7 @@ export const settleUserAccount = functions.region('europe-west1').https
                         throw new functions.https.HttpsError('not-found', ErrorMessage.USER_ACCOUNT_NOT_FOUND);
                     }
 
-                    const oldAccountSettledAt: Timestamp | undefined = settlerAccount.settledAt ? JSON.parse(JSON.stringify(settlerAccount.settledAt)) as Timestamp : undefined;
+                    const oldAccountSettledAt: any | undefined = settlerAccount.settledAt ? JSON.parse(JSON.stringify(settlerAccount.settledAt)) : undefined; // TODO Check if Timestamp is still correctly parsed
                     const oldAccountBalance: Balance = JSON.parse(JSON.stringify(house.balances[data.settlerAccountId]));
 
                     // Create an update object
@@ -89,7 +90,7 @@ export const settleUserAccount = functions.region('europe-west1').https
                         [`balances.${data.settlerAccountId}.products`]: {},
                         accounts: house.accounts.map((acc: UserAccount) => {
                             if (acc.id === data.settlerAccountId) {
-                                acc.settledAt = admin.firestore.Timestamp.now();
+                                acc.settledAt = Timestamp.now();
                             }
 
                             return acc;
@@ -100,9 +101,9 @@ export const settleUserAccount = functions.region('europe-west1').https
                     const balanceToAdd: Balance = house.balances[data.settlerAccountId];
 
                     updateObject[`balances.${data.receiverAccountId}.totalIn`]
-                        = admin.firestore.FieldValue.increment(balanceToAdd.totalIn);
+                        = FieldValue.increment(balanceToAdd.totalIn);
                     updateObject[`balances.${data.receiverAccountId}.totalOut`]
-                        = admin.firestore.FieldValue.increment(balanceToAdd.totalOut);
+                        = FieldValue.increment(balanceToAdd.totalOut);
 
                     if (balanceToAdd.products) {
                         Object.keys(balanceToAdd.products)
@@ -115,18 +116,18 @@ export const settleUserAccount = functions.region('europe-west1').https
                                 } : balanceToAdd.products!![productId];
 
                                 updateObject[`balances.${data.receiverAccountId}.products.${productId}.totalIn`]
-                                    = admin.firestore.FieldValue.increment(product.totalIn ?? 0);
+                                    = FieldValue.increment(product.totalIn ?? 0);
                                 updateObject[`balances.${data.receiverAccountId}.products.${productId}.totalOut`]
-                                    = admin.firestore.FieldValue.increment(product.totalOut ?? 0);
+                                    = FieldValue.increment(product.totalOut ?? 0);
                                 updateObject[`balances.${data.receiverAccountId}.products.${productId}.amountIn`]
-                                    = admin.firestore.FieldValue.increment(product.amountIn ?? 0);
+                                    = FieldValue.increment(product.amountIn ?? 0);
                                 updateObject[`balances.${data.receiverAccountId}.products.${productId}.amountOut`]
-                                    = admin.firestore.FieldValue.increment(product.amountOut ?? 0);
+                                    = FieldValue.increment(product.amountOut ?? 0);
                             });
                     }
 
                     const accountSettlement: UserAccountSettlement = {
-                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                        createdAt: FieldValue.serverTimestamp(),
                         createdBy: issuerAccount.id,
                         type: 'userAccount',
                         settledAtBefore: oldAccountSettledAt ? oldAccountSettledAt: Timestamp.now(),

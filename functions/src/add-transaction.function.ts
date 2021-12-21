@@ -1,12 +1,13 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
 import {ErrorMessage} from './models/error-message';
 import {House, Transaction, UserAccount} from './models';
 import {getTransactionUpdateObject} from './helpers/transaction.helper';
 import {sendTransactionAdded} from './helpers/message.helper';
 
+const {getFirestore, FieldValue} = require('firebase-admin/firestore');
+
 const {v4: uuidv4} = require('uuid');
-const db = admin.firestore();
+const db = getFirestore();
 
 interface AddTransactionData {
     houseId: string;
@@ -30,7 +31,10 @@ interface AddTransactionData {
  * @throws NOT_MEMBER_OF_HOUSE if the user is not member of this house
  * @throws USER_ACCOUNT_NOT_FOUND if the account of the user was not found in this house
  */
-export const addTransaction = functions.region('europe-west1').https
+export const addTransaction = functions
+    .runWith({memory: "512MB"})
+    .region('europe-west1')
+    .https
     .onCall((data: AddTransactionData, context) => {
 
         const userId: string | undefined = context.auth?.uid;
@@ -44,9 +48,9 @@ export const addTransaction = functions.region('europe-west1').https
 
         const houseRef = db.collection('houses').doc(data.houseId);
 
-        return db.runTransaction(fireTrans => {
+        return db.runTransaction((fireTrans) => {
             return fireTrans.get(houseRef)
-                .then(houseDoc => {
+                .then((houseDoc) => {
                     const house: House = houseDoc?.data() as House;
 
                     // Check if the house exists
@@ -67,7 +71,7 @@ export const addTransaction = functions.region('europe-west1').https
                     }
 
                     const newTransaction = {
-                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                        createdAt: FieldValue.serverTimestamp(),
                         createdBy: currentAccount.id,
                         items: data.transaction.items,
                         removed: false,
@@ -81,7 +85,7 @@ export const addTransaction = functions.region('europe-west1').https
 
                     sendTransactionAdded(house, data.transaction);
                 })
-                .catch(err => {
+                .catch((err) => {
                     console.error(err);
                     throw new functions.https.HttpsError('internal', ErrorMessage.INTERNAL);
                 });

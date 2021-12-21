@@ -1,7 +1,8 @@
 import {House, Transaction} from '../models';
 import * as functions from 'firebase-functions';
 import {ErrorMessage} from '../models/error-message';
-import * as admin from 'firebase-admin';
+
+const {FieldValue} = require("firebase-admin/firestore");
 
 export function getTransactionUpdateObject(house: House, transaction: Transaction): {
     [key: string]: unknown;
@@ -58,25 +59,25 @@ export function getTransactionUpdateObject(house: House, transaction: Transactio
             accountData[t.accountId].totalOut += productPrice;
 
             updateObject[`balances.${acc.id}.products.${t.productId}.amountOut`]
-                = admin.firestore.FieldValue.increment(t.amount);
+                = FieldValue.increment(t.amount);
             updateObject[`balances.${acc.id}.products.${t.productId}.totalOut`]
-                = admin.firestore.FieldValue.increment(t.productPrice * t.amount);
+                = FieldValue.increment(t.productPrice * t.amount);
         });
 
 
     Object.keys(productData).forEach((productId: string) => {
         updateObject[`productData.${productId}.totalOut`]
-            = admin.firestore.FieldValue.increment(productData[productId].totalOut);
+            = FieldValue.increment(productData[productId].totalOut);
         updateObject[`productData.${productId}.amountOut`]
-            = admin.firestore.FieldValue.increment(productData[productId].amountOut);
+            = FieldValue.increment(productData[productId].amountOut);
     });
 
     Object.keys(accountData).forEach((accountId: string) => {
         updateObject[`balances.${accountId}.totalOut`]
-            = admin.firestore.FieldValue.increment(accountData[accountId].totalOut);
+            = FieldValue.increment(accountData[accountId].totalOut);
     });
 
-    updateObject.totalOut = admin.firestore.FieldValue.increment(totalOut);
+    updateObject.totalOut = FieldValue.increment(totalOut);
 
     return updateObject;
 }

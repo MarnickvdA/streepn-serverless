@@ -1,11 +1,12 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
 import {House, Product, Stock} from './models';
 import {ErrorMessage} from './models/error-message';
 import {getHouseUpdateDataIn} from './helpers/stock.helper';
 
+const {getFirestore, FieldValue} = require('firebase-admin/firestore');
+
 const {v4: uuidv4} = require('uuid');
-const db = admin.firestore();
+const db = getFirestore();
 
 interface AddStockData {
     houseId: string;
@@ -41,9 +42,9 @@ export const addStock = functions.region('europe-west1').https.onCall((data: Add
 
     const houseRef = db.collection('houses').doc(data.houseId);
 
-    return db.runTransaction(fireTrans => {
+    return db.runTransaction((fireTrans) => {
         return fireTrans.get(houseRef)
-            .then(houseDoc => {
+            .then((houseDoc) => {
                 const house: House = houseDoc.data() as House;
 
                 // Check if the house exists
@@ -65,7 +66,7 @@ export const addStock = functions.region('europe-west1').https.onCall((data: Add
                 const uid: string = uuidv4();
                 const newStock: Stock = {
                     id: uid,
-                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    createdAt: FieldValue.serverTimestamp(),
                     createdBy: data.stock.createdBy,
                     paidById: data.stock.paidById,
                     productId: data.stock.productId,
@@ -80,7 +81,7 @@ export const addStock = functions.region('europe-west1').https.onCall((data: Add
 
                 return newStock;
             })
-            .catch(err => {
+            .catch((err) => {
                 console.error(err);
                 throw new functions.https.HttpsError('unknown', ErrorMessage.INTERNAL);
             });

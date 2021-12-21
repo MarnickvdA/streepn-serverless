@@ -1,10 +1,10 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
 import {User} from "./models";
-import {firestore} from "firebase-admin/lib/firestore";
-import Timestamp = firestore.Timestamp;
 
-const db = admin.firestore();
+const {getFirestore, Timestamp} = require('firebase-admin/firestore');
+const {getAuth} = require('firebase-admin/auth');
+
+const db = getFirestore();
 /**
  * Triggers on register of a new user and sets their custom claims to check for terms & privacy.
  * @returns void
@@ -18,12 +18,12 @@ export const createUserObject = functions
             userId: user.uid,
             createdAt: Timestamp.now(),
             email: user.email,
-            pushToken: undefined,
+            pushToken: '',
         };
 
         return Promise.all([
-            db.collection('houses').doc(user.uid).create(userObject),
-            admin.auth().setCustomUserClaims(user.uid, {
+            db.collection('users').doc(user.uid).create(userObject),
+            getAuth().setCustomUserClaims(user.uid, {
                 acceptedTermsAndPrivacy: false,
                 termsAndPrivacyVersion: '1',
             }),

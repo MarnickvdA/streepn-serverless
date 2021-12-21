@@ -2,9 +2,9 @@ import {House, SharedAccount, Transaction, UserAccount} from './models';
 import * as functions from 'firebase-functions';
 import {ErrorMessage} from './models/error-message';
 import {getTransactionUpdateObject} from './helpers/transaction.helper';
-import * as admin from 'firebase-admin';
 
-const db = admin.firestore();
+const {getFirestore} = require("firebase-admin/firestore");
+const db = getFirestore();
 
 interface EditTransactionData {
     houseId: string;
@@ -29,7 +29,10 @@ interface EditTransactionData {
  * @throws NOT_MEMBER_OF_HOUSE if the user is not member of this house
  * @throws USER_ACCOUNT_NOT_FOUND if the account of the user was not found in this house
  */
-export const editTransaction = functions.region('europe-west1').https
+export const editTransaction = functions
+    .runWith({memory: "512MB"})
+    .region('europe-west1')
+    .https
     .onCall((data: EditTransactionData, context) => {
 
         const userId: string | undefined = context.auth?.uid;

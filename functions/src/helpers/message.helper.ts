@@ -1,5 +1,5 @@
 import {House, Transaction} from '../models';
-import * as admin from 'firebase-admin';
+const {getMessaging} = require("firebase-admin/messaging");
 
 export function sendNotification(topic: string, title: string, body: string, data: { [key: string]: string }) {
     try {
@@ -14,7 +14,7 @@ export function sendNotification(topic: string, title: string, body: string, dat
             topic,
         };
 
-        admin.messaging().send(message)
+        getMessaging().send(message)
             .catch((error) => {
                 console.error('Error sending message:', error);
             });

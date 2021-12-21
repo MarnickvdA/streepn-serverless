@@ -1,15 +1,8 @@
-import {
-    Balance,
-    House,
-    Product,
-    ProductData,
-    HouseSettleMap,
-    UserAccount,
-    HouseSettlement,
-} from '../models';
+import {Balance, House, HouseSettleMap, HouseSettlement, Product, ProductData, UserAccount} from '../models';
 import * as functions from 'firebase-functions';
 import {ErrorMessage} from '../models/error-message';
-import * as admin from 'firebase-admin';
+
+const {FieldValue} = require("firebase-admin/firestore");
 
 export interface AccountBalanceMap {
     [accountId: string]: {
@@ -191,7 +184,7 @@ export function calculateNewBalance(house: House): AccountBalanceMap {
 export function deriveUpdateBatch(house: House, newAccountBalances: AccountBalanceMap): { [updateKey: string]: unknown } {
     const updateBatch: any = {
         isSettling: false,
-        settledAt: admin.firestore.FieldValue.serverTimestamp(),
+        settledAt: FieldValue.serverTimestamp(),
         totalIn: 0,
         totalOut: 0,
     };
@@ -291,7 +284,7 @@ export function calculateHouseSettlement(house: House, userId: string, newAccoun
     }
 
     const settlement: HouseSettlement = {
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
         createdBy: currentAccount.id,
         items: settled,
         accounts: {},

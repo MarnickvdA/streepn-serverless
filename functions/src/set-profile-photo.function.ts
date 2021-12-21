@@ -1,9 +1,10 @@
 import {House} from './models';
 import {ErrorMessage} from './models/error-message';
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
 
-const db = admin.firestore();
+const {getAuth} = require("firebase-admin/auth");
+const {getFirestore} = require("firebase-admin/firestore");
+const db = getFirestore();
 
 interface SetProfilePhotoData {
     downloadUrl: string;
@@ -37,7 +38,7 @@ export const setProfilePhoto = functions.region('europe-west1').https.onCall((da
         throw new functions.https.HttpsError('failed-precondition', ErrorMessage.INVALID_DATA);
     }
 
-    admin.auth().updateUser(userId, {
+    getAuth().updateUser(userId, {
         photoURL: data.downloadUrl,
     }).catch(err => {
         console.error(err);

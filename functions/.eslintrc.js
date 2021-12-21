@@ -43,6 +43,7 @@ module.exports = {
         allowEmptyCatch: true,
       },
     ],
+    "no-implicit-any": "warn",
     "no-invalid-this": "error",
     "no-new-wrappers": "error",
     "no-param-reassign": "error",

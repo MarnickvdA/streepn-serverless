@@ -1,11 +1,9 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
 import {ErrorMessage} from './models/error-message';
-import {Account, AccountSettleMap, SharedAccountSettlement, Balance, House, SharedAccount, UserAccount} from './models';
-import {firestore} from "firebase-admin/lib/firestore";
-import Timestamp = firestore.Timestamp;
+import {Account, AccountSettleMap, Balance, House, SharedAccount, SharedAccountSettlement, UserAccount} from './models';
 
-const db = admin.firestore();
+const {FieldValue, getFirestore, Timestamp} = require("firebase-admin/firestore");
+const db = getFirestore();
 const {v4: uuidv4} = require('uuid');
 
 interface AccountsPayout {
@@ -36,7 +34,10 @@ interface SettleSharedAccountData {
  * @throws NOT_MEMBER_OF_HOUSE if the user is not member of this house
  * @throws USER_ACCOUNT_NOT_FOUND if the account of the user was not found in this house
  */
-export const settleSharedAccount = functions.region('europe-west1').https
+export const settleSharedAccount = functions
+    .runWith({memory: "512MB"})
+    .region('europe-west1')
+    .https
     .onCall((data: SettleSharedAccountData, context) => {
 
         const userId: string | undefined = context.auth?.uid;
@@ -79,7 +80,7 @@ export const settleSharedAccount = functions.region('europe-west1').https
                         throw new functions.https.HttpsError('not-found', ErrorMessage.SHARED_ACCOUNT_NOT_FOUND);
                     }
 
-                    const oldAccountSettledAt: Timestamp | undefined = sharedAccount.settledAt ? JSON.parse(JSON.stringify(sharedAccount.settledAt)) as Timestamp : undefined;
+                    const oldAccountSettledAt: any | undefined = sharedAccount.settledAt ? JSON.parse(JSON.stringify(sharedAccount.settledAt)) : undefined; // TODO Check if Timestamp is still correctly parsed
                     const oldAccountBalance: Balance = JSON.parse(JSON.stringify(house.balances[data.sharedAccountId]));
 
                     // Create an update object
@@ -91,7 +92,7 @@ export const settleSharedAccount = functions.region('europe-west1').https
                         [`balances.${data.sharedAccountId}.products`]: {},
                         sharedAccounts: house.sharedAccounts.map((acc: SharedAccount) => {
                             if (acc.id === data.sharedAccountId) {
-                                acc.settledAt = admin.firestore.Timestamp.now();
+                                acc.settledAt = Timestamp.now();
                             }
 
                             return acc;
@@ -101,20 +102,20 @@ export const settleSharedAccount = functions.region('europe-west1').https
                     Object.keys(data.settlement).forEach((accountId: string) => {
                         const payer: AccountSettleMap = data.settlement[accountId];
 
-                        updateObject[`balances.${accountId}.totalOut`] = admin.firestore.FieldValue.increment(payer.totalOut);
+                        updateObject[`balances.${accountId}.totalOut`] = FieldValue.increment(payer.totalOut);
 
                         Object.keys(payer.products)
                             .forEach((productId: string) => {
                                 updateObject[`balances.${accountId}.products.${productId}.totalOut`]
-                                    = admin.firestore.FieldValue.increment(payer.products[productId].totalOut);
+                                    = FieldValue.increment(payer.products[productId].totalOut);
                                 updateObject[`balances.${accountId}.products.${productId}.amountOut`]
-                                    = admin.firestore.FieldValue.increment(payer.products[productId].amountOut);
+                                    = FieldValue.increment(payer.products[productId].amountOut);
                             });
                     });
 
 
                     const accountSettlement: SharedAccountSettlement = {
-                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                        createdAt: FieldValue.serverTimestamp(),
                         createdBy: currentAccount.id,
                         type: 'sharedAccount',
                         creditorId: data.sharedAccountId,

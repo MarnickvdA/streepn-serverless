@@ -1,11 +1,11 @@
 import * as functions from 'firebase-functions';
 import {ErrorMessage} from './models/error-message';
-import * as admin from 'firebase-admin';
 import {House, HouseSettlement} from './models';
 import {AccountBalanceMap, calculateNewBalance, calculateHouseSettlement, deriveUpdateBatch} from './helpers/settlement.helper';
 
 const {v4: uuidv4} = require('uuid');
-const db = admin.firestore();
+const {getFirestore, Timestamp} = require("firebase-admin/firestore");
+const db = getFirestore();
 
 export interface SettleHouseData {
     houseId: string;
@@ -28,7 +28,10 @@ export interface SettleHouseData {
  * @throws SHARED_ACCOUNT_NOT_FOUND if the shared account with accountId was not found in this house
  * @throws PRODUCT_NOT_FOUND if the product with productId was not found in this house
  */
-export const settleHouse = functions.region('europe-west1').https
+export const settleHouse = functions
+    .runWith({memory: "1GB"})
+    .region('europe-west1')
+    .https
     .onCall((data: SettleHouseData, context) => {
 
         const userId: string | undefined = context.auth?.uid;
@@ -44,7 +47,7 @@ export const settleHouse = functions.region('europe-west1').https
 
         houseRef.set({
                 isSettling: true,
-                settleTimeout: admin.firestore.Timestamp.now(),
+                settleTimeout: Timestamp.now(),
             }, {merge: true})
             .catch(err => {
                 console.error(err);
@@ -76,7 +79,7 @@ export const settleHouse = functions.region('europe-west1').https
                 .catch((err: any) => {
                     houseRef.set({
                             isSettling: true,
-                            settleTimeout: admin.firestore.Timestamp.now(),
+                            settleTimeout: Timestamp.now(),
                         }, {merge: true})
                         .catch(error => {
                             console.error(error);

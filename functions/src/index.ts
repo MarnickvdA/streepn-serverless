@@ -3,8 +3,8 @@
 require('firebase-functions');
 
 // The Firebase Admin SDK to access Firestore.
-const admin = require('firebase-admin');
-admin.initializeApp();
+const { initializeApp } = require('firebase-admin/app');
+initializeApp();
 
 // Firestore triggers
 export {createUserObject} from './create-user-object.function';

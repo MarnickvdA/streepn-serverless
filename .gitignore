@@ -109,3 +109,5 @@ functions/lib
 functions/data
 
 **.log
+
+functions/firestore-export-**

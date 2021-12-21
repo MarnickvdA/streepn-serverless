@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
+const { getAuth } = require('firebase-admin/auth')
 
 export const acceptTerms = functions
     .region('europe-west1')
@@ -10,7 +10,7 @@ export const acceptTerms = functions
             throw new functions.https.HttpsError('unauthenticated', 'Not authenticated');
         }
 
-        return admin.auth().setCustomUserClaims(userId, {
+        return getAuth().setCustomUserClaims(userId, {
                 acceptedTermsAndPrivacy: true,
                 termsAndPrivacyVersion: data.version,
             })

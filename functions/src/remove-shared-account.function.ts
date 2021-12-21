@@ -1,9 +1,9 @@
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
 import {Balance, House} from './models';
 import {ErrorMessage} from './models/error-message';
 
-const db = admin.firestore();
+const {FieldValue, getFirestore} = require("firebase-admin/firestore");
+const db = getFirestore();
 
 interface RemoveSharedAccountData {
     houseId: string;
@@ -64,8 +64,8 @@ export const removeSharedAccount = functions.region('europe-west1').https.onCall
                 if (sharedAccount && balance.totalIn === 0 && balance.totalOut === 0) {
                     delete house.balances[data.sharedAccountId];
                     fireTrans.update(houseRef, {
-                        sharedAccounts: admin.firestore.FieldValue.arrayRemove(sharedAccount),
-                        [`balances.${data.sharedAccountId}`]: admin.firestore.FieldValue.delete(),
+                        sharedAccounts: FieldValue.arrayRemove(sharedAccount),
+                        [`balances.${data.sharedAccountId}`]: FieldValue.delete(),
                     });
                 } else {
                     console.error('Shared account not found');

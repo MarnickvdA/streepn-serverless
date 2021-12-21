@@ -1,5 +1,6 @@
 import {Stock} from '../models';
-import * as admin from 'firebase-admin';
+
+const {FieldValue} = require("firebase-admin/firestore");
 
 export function getDeltaStock(originalStock: Stock, updatedStock: Stock) {
     return {
@@ -23,13 +24,13 @@ export function getHouseUpdateDataOut(stock: Stock) {
 
 function getHouseUpdateData(stock: Stock, direction: 'In' | 'Out') {
     return {
-        totalIn: admin.firestore.FieldValue.increment(stock.cost),
-        [`productData.${stock.productId}.total${direction}`]: admin.firestore.FieldValue.increment(stock.cost),
-        [`productData.${stock.productId}.amount${direction}`]: admin.firestore.FieldValue.increment(stock.amount),
-        [`balances.${stock.paidById}.total${direction}`]: admin.firestore.FieldValue.increment(stock.cost),
+        totalIn: FieldValue.increment(stock.cost),
+        [`productData.${stock.productId}.total${direction}`]: FieldValue.increment(stock.cost),
+        [`productData.${stock.productId}.amount${direction}`]: FieldValue.increment(stock.amount),
+        [`balances.${stock.paidById}.total${direction}`]: FieldValue.increment(stock.cost),
         [`balances.${stock.paidById}.products.${stock.productId}.total${direction}`]:
-            admin.firestore.FieldValue.increment(stock.cost),
+            FieldValue.increment(stock.cost),
         [`balances.${stock.paidById}.products.${stock.productId}.amount${direction}`]:
-            admin.firestore.FieldValue.increment(stock.amount),
+            FieldValue.increment(stock.amount),
     };
 }

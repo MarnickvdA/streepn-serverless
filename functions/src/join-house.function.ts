@@ -1,10 +1,10 @@
 import {AuthUser, Balance, House, UserAccount} from './models';
 import {ErrorMessage} from './models/error-message';
 import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
 
 const {v4: uuidv4} = require('uuid');
-const db = admin.firestore();
+const {FieldValue, getFirestore, Timestamp} = require("firebase-admin/firestore");
+const db = getFirestore();
 
 interface JoinHouseData {
     houseId: string;
@@ -65,7 +65,7 @@ export const joinHouse = functions.region('europe-west1').https.onCall((data: Jo
                     throw new functions.https.HttpsError('permission-denied', ErrorMessage.ALREADY_MEMBER_OF_HOUSE);
                 }
 
-                const now = admin.firestore.Timestamp.now();
+                const now = Timestamp.now();
                 if (house.inviteLinkExpiry < now) {
                     throw new functions.https.HttpsError('permission-denied', ErrorMessage.EXPIRED_HOUSE_CODE);
                 }
@@ -87,8 +87,8 @@ export const joinHouse = functions.region('europe-west1').https.onCall((data: Jo
                 };
 
                 fireTrans.update(houseRef, {
-                    accounts: admin.firestore.FieldValue.arrayUnion(account),
-                    members: admin.firestore.FieldValue.arrayUnion(userId),
+                    accounts: FieldValue.arrayUnion(account),
+                    members: FieldValue.arrayUnion(userId),
                     [`balances.${accountId}`]: accountBalance,
                 });
 

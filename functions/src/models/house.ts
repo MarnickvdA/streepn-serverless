@@ -10,6 +10,7 @@ export interface House {
     accounts: UserAccount[];
     sharedAccounts: SharedAccount[];
     products: Product[];
+    removedItems?: RemovedItem[];
 
     settledAt?: any;
     isSettling?: boolean;
@@ -33,6 +34,7 @@ export interface Account {
     name: string;
     settledAt?: any;
     type: 'user' | 'shared';
+    removed?: boolean;
 }
 
 export interface UserAccount extends Account {
@@ -50,6 +52,11 @@ export interface Product {
     createdAt: any;
     name: string;
     price: number;
+}
+
+export interface RemovedItem {
+    id: string;
+    name: string;
 }
 
 export interface Balance {

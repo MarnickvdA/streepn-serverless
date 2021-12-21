@@ -1,6 +1,4 @@
 import {Balance} from "./house";
-import {firestore} from "firebase-admin/lib/firestore";
-import Timestamp = firestore.Timestamp;
 
 export interface HouseSettleMap {
     [accountId: string]: {
@@ -45,7 +43,7 @@ export interface HouseSettlement extends Settlement {
 }
 
 export interface SharedAccountSettlement extends Settlement {
-    settledAtBefore: Timestamp;
+    settledAtBefore: any;
     creditor: Balance;
     creditorId: string;
     debtors: {
@@ -54,7 +52,7 @@ export interface SharedAccountSettlement extends Settlement {
 }
 
 export interface UserAccountSettlement extends Settlement {
-    settledAtBefore: Timestamp;
+    settledAtBefore: any;
     settlerAccountId: string;
     receiverAccountId: string;
     balanceSettled: Balance;

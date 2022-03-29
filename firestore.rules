@@ -8,6 +8,10 @@ service cloud.firestore {
             allow get, create, delete: if isSignedIn();
         }
 
+        match /deals/{documents=**} {
+            allow read: if isSignedIn();
+        }
+
         match /houses/{houseId} {
               allow read, update: if isSignedIn() && isMemberOfHouse(existingData());
               allow create: if isSignedIn();

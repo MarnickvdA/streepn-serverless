@@ -20,8 +20,8 @@
     "node": "14"
   },
   "dependencies": {
-    "firebase-admin": "^10.0.0",
-    "firebase-functions": "^3.16.0",
+    "firebase-admin": "^10.0.2",
+    "firebase-functions": "^3.19.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -33,13 +33,13 @@
     "eslint": "^7.6.0",
     "eslint-plugin-import": "^2.22.0",
     "firebase-functions-test": "^0.3.3",
-    "firebase-tools": "^9.22.0",
+    "firebase-tools": "^10.5.0",
     "jest": "^27.3.1",
     "mocha": "^8.2.1",
     "mocha-junit-reporter": "^2.0.0",
     "sinon": "^9.2.4",
-    "ts-mocha": "^8.0.0",
-    "ts-node": "^9.1.1",
-    "typescript": "^3.8.0"
+    "ts-mocha": "^9.0.2",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.3.5"
   }
 }

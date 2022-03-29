@@ -107,6 +107,7 @@ modules.xml
 
 functions/lib
 functions/data
+functions/data-old
 
 **.log
 
